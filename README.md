@@ -1,27 +1,13 @@
-## Original Author
-
-This project is based on [@gavvvr/obsidian-imgur-plugin](https://github.com/gavvvr/obsidian-imgur-plugin).
-
-original author: [@gavvvr](https://github.com/gavvvr)
-
-origianl project works on Obsidian, this project works on VS Code.
-
 # Imgur Uploader for VS Code
 
 Automatically upload images to Imgur when pasting in Markdown files.
 
 ## Features
 
-- Automatically detects image paste in Markdown files
-- Uploads images to Imgur
-- Supports both anonymous and authenticated uploads
+- One-click image upload to Imgur
+- Paste image directly in Markdown files
+- Anonymous upload support (50 uploads per hour)
 - Shows upload status in the status bar
-
-## Requirements
-
-- VS Code 1.60.0 or higher
-- An Imgur account (optional)
-- Imgur Client ID
 
 ## Setup
 
@@ -29,101 +15,54 @@ Automatically upload images to Imgur when pasting in Markdown files.
 
    - If you don't have an Imgur account, register at https://imgur.com/register
    - Go to https://api.imgur.com/oauth2/addclient
-   - Use any name for "Application name". For example: "VS Code Imgur Uploader"
-   - Choose "OAuth 2 authorization without a callback URL"
-   - You can leave the "Authorization callback URL" field empty
-   - Fill in your email and submit
-   - Save the Client ID you receive
+   - Fill in the following:
+     - Application name: Any name (e.g., "VS Code Uploader")
+     - Authorization type: Select "OAuth 2 authorization without a callback URL"
+     - Email: Your email
+     - Description: Optional
+   - Click "Submit" to get your Client ID
+   - Save the Client ID (you'll need it in the next step)
 
-2. Configure in VS Code:
+2. Configure VS Code:
    - Open VS Code settings (Cmd+, on Mac, Ctrl+, on Windows/Linux)
    - Search for "Imgur"
-   - Add your Client ID in the "Imgur Client ID" field
-   - (Optional) Enable "Authenticated upload" for higher rate limits
+   - Paste your Client ID in the "Imgur Client ID" field
 
 ## Usage
 
 1. Copy an image to clipboard
-2. Paste in a Markdown file
-3. Choose "Yes" when prompted to upload to Imgur
-4. The image link will be automatically inserted
+2. Open a Markdown file
+3. Press Cmd+V (Mac) or Ctrl+V (Windows/Linux)
+4. Click "Yes" when asked to upload to Imgur
+5. The image link will be automatically inserted
 
-## Imgur License
+## Rate Limits
 
-After creation, Client ID can be managed at: <https://imgur.com/account/settings/apps>
+This extension uses anonymous uploads to Imgur, which has the following limits:
 
-[^1]: You will only need to configure Client ID in Imgur plugin settings, secret is not required.
-
-### Authentication Types
-
-#### Anonymous Upload (Default)
-
+- 50 uploads per hour
 - No account required
-- Rate limit: 50 uploads per hour
 - Images are not linked to your account
-
-#### Authenticated Upload
-
-1. Get your Client ID as described in Setup
-2. Enable "Authenticated upload" in VS Code settings
-3. Your uploads will be linked to your Imgur account
-4. Rate limit: 1250 uploads per hour
-5. You can manage your uploads at https://imgur.com/account/images
+- Cannot delete uploaded images
 
 ## FAQ
 
-**Q:** How secure this approach is?  
-**A:** Nobody sees your uploaded image unless you share a link or someone magically guesses an URL to your image.
+**Q:** Can I use authenticated uploads?  
+**A:** Currently, this extension only supports anonymous uploads for simplicity and reliability.
 
-**Q:** Can I remove a remote image uploaded by accident?  
-**A:** For authenticated uploads - yes, go to <https://your_login.imgur.com/all/>,
-for anonymous uploads - no
-(it is technically possible, but you will need a `deleteHash` which is not recorded. I would record it, but there is no place for logging in Obsidian yet)
+**Q:** What happens if I hit the rate limit?  
+**A:** You'll need to wait until the next hour to upload more images.
 
-**Q:** For how long an image stays at imgur.com? Is there a chance to lose the data?  
-**A:** For authenticated uploads, I guess they are never deleted. What about anonymous uploads?
-Earlier it [was stated on Imgur website][early-imgur-guarantees] that the image you upload stays **forever**.
-I think this is true [since 2015][imgur-pro-free]. Today I could not find this statement on Imgur website.
-I can assume that images that did not receive any view for years, can be removed, but there is nothing to worry about.
-You can read my detailed thoughts on this in [discussions][ttl-discussion]
+**Q:** Can I delete uploaded images?  
+**A:** Since we use anonymous uploads, images cannot be deleted. Please be careful what you upload.
 
-[imgur-pro-free]: https://blog.imgur.com/2015/02/09/imgur-pro-for-everyone/
-[early-imgur-guarantees]: https://webapps.stackexchange.com/questions/75993/how-long-does-imgur-store-uploaded-images/75994#75994
-[ttl-discussion]: https://github.com/gavvvr/obsidian-imgur-plugin/discussions/4#discussioncomment-590286
+**Q:** Is it secure?  
+**A:** Images uploaded anonymously are only accessible to people who have the direct link.
 
-**Q:** Imgur supports videos. Does the plugin support videos upload?  
-**A:** No. Initially, I did not consider videos upload support since there is no Markdown syntax to embed videos.
-On the other hand, you can simply use `<video>` HTML tag, so I will probably add support for videos in future
+## License
 
-**Q:** Can it upload images to some other service?  
-**A:** For now, there are no plans to support other image hosting solutions,
-but it should not be difficult for you to make a fork and create your own implementation of `ImageUploader` interface.
+MIT
 
-### Discussion
+## Acknowledgments
 
-If you have any questions/suggestions, consider using [GitHub Discussions][gh-discussions].
-
-### Known limitations
-
-- you can not paste animated gifs from the clipboard (they initially get copied as a static images to the clipboard).
-  Use drag and drop instead if you want to upload an animated gif.
-- there are [daily limits](https://apidocs.imgur.com/#rate-limits) for using Imgur API using associated with particular Client ID.
-
-### Known issues
-
-- Sometimes Imgur can reject your request to upload an image for no obvious reason.
-  The error [usually reported in this case][known-cors-problem-issue] is a failed CORS request,
-  which does not allow Obsidian to proceed with image upload. If you face this problem, no action required from your side:
-  just wait, and it will disappear soon. Whenever the plugin fails to upload an image remotely,
-  it will fall back to the default method of storing an image locally.
-
-[known-cors-problem-issue]: https://github.com/gavvvr/obsidian-imgur-plugin/issues/8
-
-### Contribution
-
-Contributions are welcomed.
-Check out the [DEVELOPMENT.md](DEVELOPMENT.md) to get started with the code.
-
-### Your support
-
-If this plugin is helpful to you, you can show your ❤️ by giving it a star ⭐️ on GitHub.
+This project is based on [@gavvvr/obsidian-imgur-plugin](https://github.com/gavvvr/obsidian-imgur-plugin).

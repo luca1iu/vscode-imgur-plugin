@@ -188,55 +188,70 @@ async function getImageDataFromClipboard(): Promise<string | null> {
   }
 }
 
-async function uploadToImgur(imageData: string): Promise<string | null> {
-  const token = await context.secrets.get('imgur-token')
+async function uploadToImgur(
+  imageData: string,
+  clientId: string,
+  authenticated: boolean,
+): Promise<string | null> {
+  try {
+    console.log('Uploading image to Imgur...')
 
-  const response = await fetch('https://api.imgur.com/3/image', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      image: imageData,
-      type: 'base64',
-    }),
-  })
+    // 对于认证模式，我们需要使用 Client-ID 而不是 Bearer token
+    const authHeader = `Client-ID ${clientId}`
 
-  if (response.status === 429) {
-    const errorText = await response.text()
-    console.error('Rate limit error:', errorText)
-
-    const remainingTime = response.headers.get('X-RateLimit-Reset')
-    const message = remainingTime
-      ? `Rate limit reached. Reset in ${new Date(
-          parseInt(remainingTime) * 1000,
-        ).toLocaleTimeString()}`
-      : 'Rate limit reached. Please try again later'
-
-    vscode.window.showErrorMessage(message)
-    return null
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('Imgur API Error:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-      body: errorText,
+    const response = await fetch('https://api.imgur.com/3/image', {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageData,
+        type: 'base64',
+        name: `image_${new Date().toISOString()}.png`,
+        description: 'Uploaded from VS Code',
+      }),
     })
-    throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`)
-  }
 
-  const data = await response.json()
-  console.log('Imgur API Response:', data)
+    if (response.status === 429) {
+      const errorText = await response.text()
+      console.error('Rate limit error:', errorText)
 
-  if (data.success) {
-    vscode.window.showInformationMessage('Image uploaded successfully!')
-    return data.data.link
-  } else {
-    throw new Error(data.data?.error || 'Unknown error')
+      const remainingTime = response.headers.get('X-RateLimit-Reset')
+      const message = remainingTime
+        ? `Rate limit reached. Reset in ${new Date(
+            parseInt(remainingTime) * 1000,
+          ).toLocaleTimeString()}`
+        : 'Rate limit reached. Please try again later'
+
+      vscode.window.showErrorMessage(message)
+      return null
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Imgur API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: errorText,
+      })
+      throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('Imgur API Response:', data)
+
+    if (data.success) {
+      vscode.window.showInformationMessage('Image uploaded successfully!')
+      return data.data.link
+    } else {
+      throw new Error(data.data?.error || 'Unknown error')
+    }
+  } catch (error: any) {
+    console.error('Upload error:', error)
+    vscode.window.showErrorMessage(`Failed to upload image to Imgur: ${error.message}`)
+    return null
   }
 }
 

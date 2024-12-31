@@ -46,12 +46,7 @@
         "imgurUploader.clientId": {
           "type": "string",
           "default": "",
-          "description": "Your Imgur Client ID. Go to https://api.imgur.com/oauth2/addclient, register an application and get your Client ID."
-        },
-        "imgurUploader.authenticated": {
-          "type": "boolean",
-          "default": false,
-          "description": "Currently not supported. Please use anonymous upload mode."
+          "description": "Your Imgur Client ID. Go to https://api.imgur.com/oauth2/addclient to get your Client ID for anonymous uploads (50 uploads/hour)."
         }
       }
     },

@@ -83,6 +83,9 @@ function activate(context) {
             await vscode.commands.executeCommand('default:editor.action.clipboardPasteAction');
         }
     }));
+    context.subscriptions.push(vscode.commands.registerCommand('imgurUploader.authenticate', async () => {
+        await authenticateImgur();
+    }));
 }
 exports.activate = activate;
 async function verifyImgurAuth() {
@@ -180,24 +183,12 @@ async function getImageDataFromClipboard() {
 async function uploadToImgur(imageData, clientId, authenticated) {
     try {
         console.log('Uploading image to Imgur...');
-        console.log('Auth mode:', authenticated ? 'Authenticated' : 'Anonymous');
-        console.log('Client ID length:', clientId.length);
-        console.log('Image data length:', imageData.length);
-        // 测试 Client ID 是否有效
-        const creditsResponse = await fetch('https://api.imgur.com/3/credits', {
-            headers: {
-                Authorization: `Client-ID ${clientId}`,
-            },
-        });
-        const creditsData = await creditsResponse.json();
-        console.log('Credits check:', creditsData);
-        if (!creditsData.success) {
-            throw new Error('Invalid Client ID');
-        }
+        // 对于认证模式，我们需要使用 Client-ID 而不是 Bearer token
+        const authHeader = `Client-ID ${clientId}`;
         const response = await fetch('https://api.imgur.com/3/image', {
             method: 'POST',
             headers: {
-                Authorization: authenticated ? `Bearer ${clientId}` : `Client-ID ${clientId}`,
+                Authorization: authHeader,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -242,6 +233,20 @@ async function uploadToImgur(imageData, clientId, authenticated) {
         vscode.window.showErrorMessage(`Failed to upload image to Imgur: ${error.message}`);
         return null;
     }
+}
+async function authenticateImgur() {
+    const clientId = 'your_client_id';
+    const clientSecret = 'your_client_secret';
+    // 1. 打开浏览器让用户授权
+    const authUrl = `https://api.imgur.com/oauth2/authorize?client_id=${clientId}&response_type=token`;
+    vscode.env.openExternal(vscode.Uri.parse(authUrl));
+    // 2. 获取访问令牌
+    const token = await vscode.window.showInputBox({
+        prompt: 'Please paste the access token from the browser',
+        password: true,
+    });
+    // 3. 保存令牌
+    await context.secrets.store('imgur-token', token);
 }
 function deactivate() {
     if (statusBarItem) {
