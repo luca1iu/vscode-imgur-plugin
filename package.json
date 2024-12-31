@@ -2,7 +2,7 @@
   "name": "markdown-imgur-uploader",
   "displayName": "Imgur Uploader",
   "description": "Upload images to Imgur from VS Code",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "luca1iu",
   "keywords": [
     "markdown",
@@ -46,12 +46,12 @@
         "imgurUploader.clientId": {
           "type": "string",
           "default": "",
-          "description": "Your Imgur Client ID. Find your existing Client ID at https://imgur.com/account/settings/apps or follow the instructions to generate new Client ID."
+          "description": "Your Imgur Client ID. Go to https://api.imgur.com/oauth2/addclient, register an application and get your Client ID."
         },
         "imgurUploader.authenticated": {
           "type": "boolean",
           "default": false,
-          "description": "Enable authenticated upload to Imgur. Your images will be uploaded to your Imgur account."
+          "description": "Currently not supported. Please use anonymous upload mode."
         }
       }
     },

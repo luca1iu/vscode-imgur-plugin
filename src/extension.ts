@@ -81,6 +81,12 @@ export function activate(context: vscode.ExtensionContext) {
       },
     ),
   )
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('imgurUploader.authenticate', async () => {
+      await authenticateImgur()
+    }),
+  )
 }
 
 async function verifyImgurAuth() {
@@ -88,33 +94,40 @@ async function verifyImgurAuth() {
   const clientId = config.get<string>('clientId')
   const authenticated = config.get<boolean>('authenticated') ?? false
 
+  console.log('Verifying Imgur auth:', {
+    clientId: clientId?.substring(0, 5) + '...',
+    authenticated,
+  })
+
   if (!clientId) {
     statusBarItem.hide()
     return
   }
 
   try {
-    const response = await fetch('https://api.imgur.com/3/account/me/images', {
+    const response = await fetch('https://api.imgur.com/3/credits', {
       headers: {
         Authorization: authenticated ? `Bearer ${clientId}` : `Client-ID ${clientId}`,
       },
     })
 
     const data = await response.json()
+    console.log('Auth check response:', data)
 
-    if (data.success && data.data) {
-      const username = data.data.account_url || 'Anonymous'
-      statusBarItem.text = `$(check) Imgur: ${username}`
-      statusBarItem.tooltip = `Authenticated as: ${username}`
+    if (data.success) {
+      const credits = data.data
+      statusBarItem.text = `$(check) Imgur: ${credits.UserRemaining}/${credits.UserLimit} uploads left`
+      statusBarItem.tooltip = `Client uploads: ${credits.ClientRemaining}/${credits.ClientLimit}`
       statusBarItem.show()
     } else {
-      statusBarItem.text = '$(alert) Imgur: Not authenticated'
-      statusBarItem.tooltip = 'Click to configure Imgur settings'
+      statusBarItem.text = '$(alert) Imgur: Auth error'
+      statusBarItem.tooltip = data.data?.error || 'Unknown error'
       statusBarItem.show()
     }
   } catch (error: any) {
-    statusBarItem.text = '$(alert) Imgur: Authentication failed'
-    statusBarItem.tooltip = `Error: ${error?.message || 'Unknown error'}`
+    console.error('Auth check error:', error)
+    statusBarItem.text = '$(alert) Imgur: Error'
+    statusBarItem.tooltip = error.message
     statusBarItem.show()
   }
 }
@@ -175,49 +188,74 @@ async function getImageDataFromClipboard(): Promise<string | null> {
   }
 }
 
-async function uploadToImgur(
-  imageData: string,
-  clientId: string,
-  authenticated: boolean,
-): Promise<string | null> {
-  try {
-    console.log('Uploading image to Imgur...')
+async function uploadToImgur(imageData: string): Promise<string | null> {
+  const token = await context.secrets.get('imgur-token')
 
-    // 添加更多调试信息
-    console.log('Image data length:', imageData.length)
-    console.log('First 100 chars of image data:', imageData.substring(0, 100))
+  const response = await fetch('https://api.imgur.com/3/image', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      image: imageData,
+      type: 'base64',
+    }),
+  })
 
-    const response = await fetch('https://api.imgur.com/3/image', {
-      method: 'POST',
-      headers: {
-        Authorization: authenticated ? `Bearer ${clientId}` : `Client-ID ${clientId}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: imageData,
-        type: 'base64',
-        name: `image_${new Date().toISOString()}.png`,
-        description: 'Uploaded from VS Code',
-      }),
-    })
+  if (response.status === 429) {
+    const errorText = await response.text()
+    console.error('Rate limit error:', errorText)
 
-    const data = await response.json()
-    console.log('Imgur API Response:', data)
+    const remainingTime = response.headers.get('X-RateLimit-Reset')
+    const message = remainingTime
+      ? `Rate limit reached. Reset in ${new Date(
+          parseInt(remainingTime) * 1000,
+        ).toLocaleTimeString()}`
+      : 'Rate limit reached. Please try again later'
 
-    if (data.success) {
-      vscode.window.showInformationMessage('Image uploaded successfully!')
-      return data.data.link
-    } else {
-      const errorMessage = data.data?.error || 'Unknown error'
-      console.error('Upload failed:', errorMessage, data)
-      vscode.window.showErrorMessage(`Failed to upload image to Imgur: ${errorMessage}`)
-      return null
-    }
-  } catch (error: any) {
-    console.error('Upload error:', error)
-    vscode.window.showErrorMessage(`Error uploading image: ${error?.message || 'Unknown error'}`)
+    vscode.window.showErrorMessage(message)
     return null
   }
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Imgur API Error:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+      body: errorText,
+    })
+    throw new Error(`HTTP ${response.status}: ${response.statusText}\n${errorText}`)
+  }
+
+  const data = await response.json()
+  console.log('Imgur API Response:', data)
+
+  if (data.success) {
+    vscode.window.showInformationMessage('Image uploaded successfully!')
+    return data.data.link
+  } else {
+    throw new Error(data.data?.error || 'Unknown error')
+  }
+}
+
+async function authenticateImgur() {
+  const clientId = 'your_client_id'
+  const clientSecret = 'your_client_secret'
+
+  // 1. 打开浏览器让用户授权
+  const authUrl = `https://api.imgur.com/oauth2/authorize?client_id=${clientId}&response_type=token`
+  vscode.env.openExternal(vscode.Uri.parse(authUrl))
+
+  // 2. 获取访问令牌
+  const token = await vscode.window.showInputBox({
+    prompt: 'Please paste the access token from the browser',
+    password: true,
+  })
+
+  // 3. 保存令牌
+  await context.secrets.store('imgur-token', token)
 }
 
 export function deactivate() {

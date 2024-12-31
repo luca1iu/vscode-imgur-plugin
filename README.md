@@ -25,11 +25,21 @@ Automatically upload images to Imgur when pasting in Markdown files.
 
 ## Setup
 
-1. Get your Imgur Client ID from https://api.imgur.com/oauth2/addclient
-2. Open VS Code settings
-3. Search for "Imgur"
-4. Add your Client ID
-5. (Optional) Enable authenticated uploads
+1. Get your Imgur Client ID:
+
+   - If you don't have an Imgur account, register at https://imgur.com/register
+   - Go to https://api.imgur.com/oauth2/addclient
+   - Use any name for "Application name". For example: "VS Code Imgur Uploader"
+   - Choose "OAuth 2 authorization without a callback URL"
+   - You can leave the "Authorization callback URL" field empty
+   - Fill in your email and submit
+   - Save the Client ID you receive
+
+2. Configure in VS Code:
+   - Open VS Code settings (Cmd+, on Mac, Ctrl+, on Windows/Linux)
+   - Search for "Imgur"
+   - Add your Client ID in the "Imgur Client ID" field
+   - (Optional) Enable "Authenticated upload" for higher rate limits
 
 ## Usage
 
@@ -44,17 +54,21 @@ After creation, Client ID can be managed at: <https://imgur.com/account/settings
 
 [^1]: You will only need to configure Client ID in Imgur plugin settings, secret is not required.
 
-### Authenticated upload
+### Authentication Types
 
-Go to plugin's settings, select 'Authenticated Imgur upload' and complete authentication.
-That's all! Now you are ready to make notes and upload all your images remotely.
-You will see all your uploaded images at <https://your_login.imgur.com/all/>
+#### Anonymous Upload (Default)
 
-### Anonymous upload
+- No account required
+- Rate limit: 50 uploads per hour
+- Images are not linked to your account
 
-You might not want to see your Obsidian images tied to Imgur account.
+#### Authenticated Upload
 
-For this case there is an 'Anonymous Imgur upload' option.
+1. Get your Client ID as described in Setup
+2. Enable "Authenticated upload" in VS Code settings
+3. Your uploads will be linked to your Imgur account
+4. Rate limit: 1250 uploads per hour
+5. You can manage your uploads at https://imgur.com/account/images
 
 ## FAQ
 
