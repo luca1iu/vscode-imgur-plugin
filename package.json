@@ -1,67 +1,72 @@
 {
-  "name": "obsidian-imgur-plugin",
-  "description": "This plugin uploads images from your clipboard to imgur.com and embeds uploaded image to your note",
-  "main": "main.js",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "node scripts/dev.js",
-    "test": "vitest --coverage",
-    "build": "tsc -noEmit -skipLibCheck && node scripts/esbuild.build.js production",
-    "prepare": "husky",
-    "commit": "git-cz",
-    "test:e2e": "wdio run ./test/e2e/wdio.conf.ts",
-    "test:eslint": "eslint --cache"
+  "name": "imgur-uploader",
+  "displayName": "Imgur Uploader",
+  "description": "Upload images to Imgur from VS Code",
+  "version": "0.0.1",
+  "publisher": "Luca Liu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luca1iu/vscode-imgur-plugin"
   },
-  "config": {
-    "commitizen": {
-      "path": "@commitlint/cz-commitlint"
-    }
+  "engines": {
+    "vscode": "^1.60.0"
   },
-  "keywords": [
-    "obsidian.md",
-    "imgur.com"
+  "categories": [
+    "Other"
   ],
-  "author": "Kirill Gavrilov",
-  "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.uploadImage",
+        "title": "Upload Image"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Imgur Uploader Configuration",
+      "properties": {
+        "imgurUploader.clientId": {
+          "type": "string",
+          "default": "",
+          "description": "Your Imgur Client ID. Find your existing Client ID at https://imgur.com/account/settings/apps or follow the instructions to generate new Client ID."
+        },
+        "imgurUploader.authenticated": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable authenticated upload to Imgur. Your images will be uploaded to your Imgur account."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "editor.action.clipboardPasteAction",
+        "key": "ctrl+v",
+        "mac": "cmd+v",
+        "when": "editorTextFocus && !editorReadonly"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
   "devDependencies": {
-    "@commitlint/cli": "19.5.0",
-    "@commitlint/config-conventional": "19.5.0",
-    "@commitlint/cz-commitlint": "19.5.0",
-    "@types/node": "22.8.4",
-    "@vitest/coverage-v8": "2.1.4",
-    "@vitest/ui": "2.1.4",
-    "@wdio/cli": "9.2.6",
-    "@wdio/globals": "9.2.6",
-    "@wdio/local-runner": "9.2.6",
-    "@wdio/mocha-framework": "9.2.5",
-    "@wdio/spec-reporter": "9.2.2",
-    "commitizen": "4.3.1",
-    "electron": "33.0.2",
-    "enquirer": "2.4.1",
-    "esbuild": "0.24.0",
-    "eslint": "9.13.0",
-    "eslint-plugin-perfectionist": "3.9.1",
-    "eslint-plugin-wdio": "9.0.8",
-    "expect-webdriverio": "5.0.3",
-    "globals": "15.11.0",
-    "husky": "9.1.6",
-    "lint-staged": "15.2.10",
-    "obsidian": "1.7.2",
-    "obsidian-utils": "0.10.2",
-    "prettier": "3.3.3",
-    "ts-node": "10.9.2",
-    "tslib": "2.8.0",
-    "tsx": "4.19.2",
-    "typescript": "5.6.3",
-    "typescript-eslint": "8.12.2",
-    "vitest": "2.1.4",
-    "wdio-electron-service": "7.1.0",
-    "webdriverio": "9.2.6"
+    "@types/node": "^16.x",
+    "@types/vscode": "^1.60.0",
+    "typescript": "^4.9.5"
   },
-  "lint-staged": {
-    "*.{ts,js,css,md}": "prettier --write",
-    "*.ts": "eslint --cache --fix"
-  },
-  "packageManager": "pnpm@9.12.3"
+  "dependencies": {
+    "clipboardy": "^4.0.0",
+    "@types/node": "^16.x"
+  }
 }
