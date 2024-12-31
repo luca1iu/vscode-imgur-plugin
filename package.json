@@ -3,7 +3,7 @@
   "displayName": "Imgur Uploader",
   "description": "Upload images to Imgur from VS Code",
   "version": "0.0.1",
-  "publisher": "Luca Liu",
+  "publisher": "luca1iu",
   "repository": {
     "type": "git",
     "url": "https://github.com/luca1iu/vscode-imgur-plugin"
