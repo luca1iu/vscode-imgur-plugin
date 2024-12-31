@@ -8,3 +8,17 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+.git/**
+.github/**
+.husky/**
+node_modules/**
+scripts/**
+vs-code-imgur-plugin/**
+.git-blame-ignore-revs
+.prettierignore
+DEVELOPMENT.md
+eslint.config.js
+sonar-project.properties
+vitest.config.js
+changelog.md
+versions.json
